@@ -1,0 +1,40 @@
+[project]
+name = "ai-rd"
+version = "0.1.0"
+description = "AI Research & Development tooling"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "UNLICENSED" }
+authors = [{ name = "AI R&D Team" }]
+dependencies = [
+    "python-dotenv",
+    "browser-use",
+    "google-genai",
+    "anthropic",
+    "openai",
+    "groq",
+    "playwright",
+    "streamlit",
+    "pandas",
+    "pydantic",
+    "uvicorn",
+    "starlette"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy"
+]
+
+[tool.uv]
+# Customize as needed. Example: constrain Python if necessary.
+constraint-dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_rd"]

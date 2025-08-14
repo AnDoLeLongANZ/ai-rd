@@ -1,0 +1,8 @@
+# Managed by uv. Do NOT edit manually.
+# Regenerate (without hashes):
+#   uv export --format=requirements-txt --no-hashes > requirements.txt
+# Regenerate (with hashes for reproducibility):
+#   uv export --format=requirements-txt > requirements.txt
+# Add or remove dependencies:
+#   uv add <package>    |    uv remove <package>
+# Source of truth: pyproject.toml
