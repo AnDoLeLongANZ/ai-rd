@@ -71,8 +71,3 @@ cp GEMINI.example.md GEMINI.md
 # Export environment variables and run gemini
 export $(cat .env | xargs) && gemini
 ```
-
-## Environment Variables
-
-- `GOOGLE_CLOUD_PROJECT`: Your Google Cloud Platform project ID
-- `MODEL`: AI model to use (e.g., "gemini-2.5-flash-lite")
