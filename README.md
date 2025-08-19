@@ -17,7 +17,7 @@
 
 3. **Install dependencies:**
    
-   **Option 1: Using pip (recommended for most users)**
+   **Option 1: Using pip**
    ```bash
    # Create and activate virtual environment
    python -m venv venv
@@ -27,7 +27,7 @@
    pip install -r requirements.txt
    ```
    
-   **Option 2: Using uv (faster alternative)**
+   **Option 2: Using uv (recommended for most users and faster alternative)**
    ```bash
    # Install uv (see https://docs.astral.sh/uv/)
    curl -LsSf https://astral.sh/uv/install.sh | sh
