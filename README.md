@@ -47,6 +47,10 @@ uv run python gemini_use_browser.py
 
 #### Flimflam AI Assistant:
 ```bash
+# Setup system prompt file
+cp sysprompts/system_prompt.keep sysprompts/system_prompt.txt
+# Edit sysprompts/system_prompt.txt with your desired system prompt
+
 # With pip
 python sysprompts/flimflam_ai.py
 # With uv  
