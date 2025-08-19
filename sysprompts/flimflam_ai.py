@@ -32,7 +32,7 @@ async def generate_response(user_question):
     """Generate a response for a user question"""
     client = genai.Client(
         vertexai=True,
-        project=os.getenv("GCLOUD_PROJECT"),
+        project=os.getenv("GOOGLE_CLOUD_PROJECT"),
         location="global",
     )
 

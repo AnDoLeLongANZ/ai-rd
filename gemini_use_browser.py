@@ -28,7 +28,7 @@ async def example_gemini_vertex():
         model='gemini-2.5-flash',
         location='us-central1',
         temperature=0.1,
-        project=os.getenv("GCLOUD_PROJECT"),
+        project=os.getenv("GOOGLE_CLOUD_PROJECT"),
         vertexai=True
     )
     return llm
