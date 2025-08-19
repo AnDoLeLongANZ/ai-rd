@@ -12,10 +12,22 @@
 2. **Configure environment variables:**
    ```bash
    cp .env.example .env
-   # Edit .env and set your GCLOUD_PROJECT
+   # Edit .env and set your GCLOUD_PROJECT and MODEL
    ```
 
-3. **Install and sync dependencies (uv replaces pip):**
+3. **Install dependencies:**
+   
+   **Option 1: Using pip (recommended for most users)**
+   ```bash
+   # Create and activate virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+   
+   **Option 2: Using uv (faster alternative)**
    ```bash
    # Install uv (see https://docs.astral.sh/uv/)
    curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -23,29 +35,31 @@
    uv sync
    ```
 
-### Running the Browser Agent
+### Running the Applications
 
+#### Browser Agent:
 ```bash
+# With pip
+python gemini_use_browser.py
+# With uv
 uv run python gemini_use_browser.py
 ```
 
-### Dependency Management (uv)
-
-- Add a package: `uv add <package>`
-- Remove a package: `uv remove <package>`
-- Sync after pyproject.toml changes: `uv sync`
-- Export a requirements.txt (for interoperability):
-  ```bash
-  uv export --format=requirements-txt --no-hashes > requirements.txt
-  ```
-
-### Troubleshooting
-
-If you encounter a Chromium browser error, install Playwright browsers:
+#### Flimflam AI Assistant:
 ```bash
-uv run python -m playwright install chromium
+# With pip
+python sysprompts/flimflam_ai.py
+# With uv  
+uv run python sysprompts/flimflam_ai.py
 ```
+
+**Features:**
+- Interactive Q&A about Flimflam testing library
+- Comprehensive knowledge base with examples and best practices  
+- Async streaming responses for better user experience
+- System prompt loaded from external file for easy maintenance
 
 ## Environment Variables
 
 - `GCLOUD_PROJECT`: Your Google Cloud Platform project ID
+- `MODEL`: AI model to use (e.g., "gemini-2.5-flash-lite")
