@@ -12,7 +12,7 @@
 2. **Configure environment variables:**
    ```bash
    cp .env.example .env
-   # Edit .env and set your GCLOUD_PROJECT and MODEL
+   # Edit .env and set your GOOGLE_CLOUD_PROJECT and MODEL
    ```
 
 3. **Install dependencies:**
@@ -59,7 +59,16 @@ uv run python sysprompts/flimflam_ai.py
 - Async streaming responses for better user experience
 - System prompt loaded from external file for easy maintenance
 
+#### Gemini CLI:
+```bash
+# Setup system prompt file
+cp GEMINI.example.md GEMINI.md
+
+# Export environment variables and run gemini
+export $(cat .env | xargs) && gemini
+```
+
 ## Environment Variables
 
-- `GCLOUD_PROJECT`: Your Google Cloud Platform project ID
+- `GOOGLE_CLOUD_PROJECT`: Your Google Cloud Platform project ID
 - `MODEL`: AI model to use (e.g., "gemini-2.5-flash-lite")

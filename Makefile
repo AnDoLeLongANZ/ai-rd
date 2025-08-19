@@ -2,6 +2,10 @@
 browser_use:
 	python gemini_use_browser.py
 
-.PHONY: sysprompt
-sysprompt:
+.PHONY: flimflam
+flimflam:
 	python sysprompts/flimflam_ai.py
+
+.PHONY: gemini-cli
+gemini-cli:
+	export $(cat .env | xargs) && gemini
