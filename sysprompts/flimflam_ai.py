@@ -2,9 +2,11 @@ import os
 import base64
 import asyncio
 
-from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+
+from client import get_client
+from config import get_generate_content_config
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,7 +21,7 @@ async def load_system_prompt():
     if _system_prompt_cache is not None:
         return _system_prompt_cache
         
-    prompt_file = os.path.join(os.path.dirname(__file__), "flimflam_system_prompt.txt")
+    prompt_file = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
     try:
         loop = asyncio.get_event_loop()
         with open(prompt_file, 'r', encoding='utf-8') as f:
@@ -30,11 +32,7 @@ async def load_system_prompt():
 
 async def generate_response(user_question):
     """Generate a response for a user question"""
-    client = genai.Client(
-        vertexai=True,
-        project=os.getenv("GOOGLE_CLOUD_PROJECT"),
-        location="global",
-    )
+    client = get_client()
 
     # Load system prompt from external file
     system_prompt = await load_system_prompt()
@@ -50,27 +48,7 @@ async def generate_response(user_question):
         ),
     ]
 
-    generate_content_config = types.GenerateContentConfig(
-        temperature=1,
-        top_p=0.95,
-        max_output_tokens=65535,
-        safety_settings=[types.SafetySetting(
-            category="HARM_CATEGORY_HATE_SPEECH",
-            threshold="OFF"
-        ), types.SafetySetting(
-            category="HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold="OFF"
-        ), types.SafetySetting(
-            category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold="OFF"
-        ), types.SafetySetting(
-            category="HARM_CATEGORY_HARASSMENT",
-            threshold="OFF"
-        )],
-        thinking_config=types.ThinkingConfig(
-            thinking_budget=0,
-        ),
-    )
+    generate_content_config = get_generate_content_config()
 
     response = ""
     for chunk in client.models.generate_content_stream(
