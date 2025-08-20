@@ -14,7 +14,6 @@ dependencies = [
     "openai",
     "groq",
     "playwright",
-    "streamlit",
     "pandas",
     "pydantic",
     "uvicorn",
