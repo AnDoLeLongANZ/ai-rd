@@ -12,22 +12,16 @@
 2. **Configure environment variables:**
    ```bash
    cp .env.example .env
-   # Edit .env and set your GOOGLE_CLOUD_PROJECT and MODEL
    ```
 
-3. **Install dependencies:**
-   
-   **Option 1: Using pip**
+3. **If you are running this project behing a proxy**
    ```bash
-   # Create and activate virtual environment
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
-   # Install dependencies
-   pip install -r requirements.txt
+   # Verify your /etc/hosts file for any proxy-related configurations
+   # that might affect network connections to Google Cloud services
+   cat /etc/hosts
    ```
-   
-   **Option 2: Using uv (recommended for most users and faster alternative)**
+
+4. **Install dependencies:**
    ```bash
    # Install uv (see https://docs.astral.sh/uv/)
    curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -39,23 +33,17 @@
 
 #### Browser Agent:
 ```bash
-# With pip
 python gemini_use_browser.py
-# With uv
-uv run python gemini_use_browser.py
 ```
 
 #### Flimflam AI Assistant:
-```bash
-# Setup system prompt file
-cp sysprompts/system_prompt.keep sysprompts/system_prompt.txt
-# Edit sysprompts/system_prompt.txt with your desired system prompt
+   ```bash
+   # Setup system prompt file
+   cp sysprompts/system_prompt.keep sysprompts/system_prompt.txt
+   # Edit sysprompts/system_prompt.txt with your desired system prompt
 
-# With pip
-python sysprompts/flimflam_ai.py
-# With uv  
-uv run python sysprompts/flimflam_ai.py
-```
+   python sysprompts/flimflam_ai.py
+   ```
 
 **Features:**
 - Interactive Q&A about Flimflam testing library
@@ -64,10 +52,10 @@ uv run python sysprompts/flimflam_ai.py
 - System prompt loaded from external file for easy maintenance
 
 #### Gemini CLI:
-```bash
-# Setup system prompt file
-cp GEMINI.example.md GEMINI.md
+   ```bash
+   # Setup system prompt file
+   cp GEMINI.example.md GEMINI.md
 
-# Export environment variables and run gemini
-export $(cat .env | xargs) && gemini
-```
+   # Export environment variables and run gemini
+   export $(cat .env | xargs) && gemini
+   ```
