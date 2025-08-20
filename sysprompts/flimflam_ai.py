@@ -37,36 +37,59 @@ async def load_system_prompt(timeout_seconds=30):
     except Exception as e:
         raise Exception(f"Error loading system prompt: {str(e)}")
 
-async def generate_response(user_question):
-    """Generate a response for a user question"""
-    client = get_client()
+async def generate_response(user_question, timeout_seconds=60):
+    """Generate a response for a user question with comprehensive error handling"""
+    try:
+        client = get_client()
 
-    # Load system prompt from external file
-    system_prompt = await load_system_prompt()
+        # Load system prompt from external file
+        system_prompt = await load_system_prompt()
+        
+        model = os.getenv("MODEL", "gemini-2.5-flash-lite")  # Default fallback
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=system_prompt),
+                    types.Part.from_text(text=f"\nUser Question: {user_question}")
+                ]
+            ),
+        ]
+
+        generate_content_config = get_generate_content_config()
+
+        response = ""
+        try:
+            # Add timeout wrapper for the entire streaming operation
+            async with asyncio.timeout(timeout_seconds):
+                for chunk in client.models.generate_content_stream(
+                    model=model,
+                    contents=contents,
+                    config=generate_content_config,
+                ):
+                    print(chunk.text, end="", flush=True)
+                    response += chunk.text
+        
+        except asyncio.TimeoutError:
+            print(f"\n\n⏰ Response generation timed out after {timeout_seconds}s")
+            if response:
+                print("Returning partial response...")
+                return response
+            else:
+                raise Exception(f"No response received within {timeout_seconds} seconds")
+        
+        except Exception as stream_error:
+            print(f"\n\n❌ Streaming error: {stream_error}")
+            raise Exception(f"Failed to generate response: {stream_error}")
+        
+        return response
     
-    model = os.getenv("MODEL", "gemini-2.5-flash-lite")  # Default fallback
-    contents = [
-        types.Content(
-            role="user",
-            parts=[
-                types.Part.from_text(text=system_prompt),
-                types.Part.from_text(text=f"\nUser Question: {user_question}")
-            ]
-        ),
-    ]
-
-    generate_content_config = get_generate_content_config()
-
-    response = ""
-    for chunk in client.models.generate_content_stream(
-        model=model,
-        contents=contents,
-        config=generate_content_config,
-    ):
-        print(chunk.text, end="", flush=True)
-        response += chunk.text
-    
-    return response
+    except Exception as e:
+        # Handle system prompt loading errors or other setup issues
+        if "system prompt" in str(e).lower():
+            raise Exception(f"System setup error: {e}")
+        else:
+            raise Exception(f"Response generation failed: {e}")
 
 async def main():
     """Main interactive Q&A loop with async support"""
