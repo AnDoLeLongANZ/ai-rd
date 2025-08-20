@@ -1,6 +1,7 @@
 import os
 import base64
 import asyncio
+import aiofiles
 
 from google.genai import types
 from dotenv import load_dotenv
@@ -14,21 +15,27 @@ load_dotenv()
 # Cache the system prompt to avoid re-reading
 _system_prompt_cache = None
 
-async def load_system_prompt():
-    """Load the system prompt from external file with caching"""
+async def load_system_prompt(timeout_seconds=30):
+    """Load the system prompt from external file with caching and timeout"""
     global _system_prompt_cache
     
     if _system_prompt_cache is not None:
         return _system_prompt_cache
-        
+    
     prompt_file = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
+    
     try:
-        loop = asyncio.get_event_loop()
-        with open(prompt_file, 'r', encoding='utf-8') as f:
-            _system_prompt_cache = await loop.run_in_executor(None, f.read)
+        # Add timeout wrapper for file operations
+        async with asyncio.timeout(timeout_seconds):
+            async with aiofiles.open(prompt_file, 'r', encoding='utf-8') as f:
+                _system_prompt_cache = await f.read()
         return _system_prompt_cache
+    except asyncio.TimeoutError:
+        raise Exception(f"Timeout loading system prompt after {timeout_seconds}s")
+    except FileNotFoundError:
+        raise Exception(f"System prompt file not found: {prompt_file}")
     except Exception as e:
-        raise Exception(f"Error reading system prompt file: {e}")
+        raise Exception(f"Error loading system prompt: {str(e)}")
 
 async def generate_response(user_question):
     """Generate a response for a user question"""
