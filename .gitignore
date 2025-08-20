@@ -1,4 +1,5 @@
 sysprompts/*.txt
+sysprompts/.system_prompt_hash
 GEMINI.md
 
 # Byte-compiled / optimized / DLL files

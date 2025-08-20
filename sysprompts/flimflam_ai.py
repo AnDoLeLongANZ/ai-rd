@@ -2,6 +2,7 @@ import os
 import base64
 import asyncio
 import aiofiles
+import hashlib
 
 from google.genai import types
 from dotenv import load_dotenv
@@ -12,29 +13,81 @@ from config import get_generate_content_config
 # Load environment variables from .env file
 load_dotenv()
 
-# Cache the system prompt to avoid re-reading
+# Cache the system prompt and its content hash to avoid re-reading
 _system_prompt_cache = None
+_prompt_hash_cache = None
+
+def _get_hash_cache_file():
+    """Get the path to the hash cache file"""
+    return os.path.join(os.path.dirname(__file__), ".system_prompt_hash")
+
+def _load_persisted_hash():
+    """Load the persisted hash from disk"""
+    hash_file = _get_hash_cache_file()
+    try:
+        with open(hash_file, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+    except Exception:
+        return None
+
+def _save_persisted_hash(hash_value):
+    """Save the hash to disk"""
+    hash_file = _get_hash_cache_file()
+    try:
+        with open(hash_file, 'w', encoding='utf-8') as f:
+            f.write(hash_value)
+    except Exception:
+        pass  # Silently fail if we can't write cache
 
 async def load_system_prompt(timeout_seconds=30):
-    """Load the system prompt from external file with caching and timeout"""
-    global _system_prompt_cache
-    
-    if _system_prompt_cache is not None:
-        return _system_prompt_cache
+    """Load the system prompt from external file with caching and dynamic reloading based on content hash."""
+    global _system_prompt_cache, _prompt_hash_cache
     
     prompt_file = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
     
     try:
-        # Add timeout wrapper for file operations
         async with asyncio.timeout(timeout_seconds):
             async with aiofiles.open(prompt_file, 'r', encoding='utf-8') as f:
-                _system_prompt_cache = await f.read()
+                current_content = await f.read()
+        
+        # Calculate hash of current content
+        current_hash = hashlib.sha256(current_content.encode('utf-8')).hexdigest()
+        
+        # Load persisted hash on first run
+        if _prompt_hash_cache is None:
+            _prompt_hash_cache = _load_persisted_hash()
+        
+        if _prompt_hash_cache is None:
+            print("📝 Loading system prompt for the first time...")
+            _system_prompt_cache = current_content
+            _prompt_hash_cache = current_hash
+            _save_persisted_hash(current_hash)
+        elif _prompt_hash_cache != current_hash:
+            print("\n🔄 System prompt content changed. Reloading...")
+            _system_prompt_cache = current_content
+            _prompt_hash_cache = current_hash
+            _save_persisted_hash(current_hash)
+        # If hashes match, use cached content (no action needed)
+            
         return _system_prompt_cache
+        
     except asyncio.TimeoutError:
+        # If we have cached content, return it instead of failing
+        if _system_prompt_cache is not None:
+            print(f"⚠️  Timeout loading system prompt, using cached version")
+            return _system_prompt_cache
         raise Exception(f"Timeout loading system prompt after {timeout_seconds}s")
     except FileNotFoundError:
         raise Exception(f"System prompt file not found: {prompt_file}")
+    except UnicodeDecodeError as e:
+        raise Exception(f"Error decoding system prompt file (encoding issue): {str(e)}")
     except Exception as e:
+        # If we have cached content, return it for resilience
+        if _system_prompt_cache is not None:
+            print(f"⚠️  Error reloading system prompt, using cached version: {str(e)}")
+            return _system_prompt_cache
         raise Exception(f"Error loading system prompt: {str(e)}")
 
 async def generate_response(user_question, timeout_seconds=60):
@@ -45,13 +98,16 @@ async def generate_response(user_question, timeout_seconds=60):
         # Load system prompt from external file
         system_prompt = await load_system_prompt()
         
+        # Add a CoT trigger to the user question
+        cot_trigger = "\n\nNow, think step-by-step before providing your final answer."
+        
         model = os.getenv("MODEL", "gemini-2.5-flash-lite")  # Default fallback
         contents = [
             types.Content(
                 role="user",
                 parts=[
                     types.Part.from_text(text=system_prompt),
-                    types.Part.from_text(text=f"\nUser Question: {user_question}")
+                    types.Part.from_text(text=f"\nUser Question: {user_question}{cot_trigger}")
                 ]
             ),
         ]
@@ -100,9 +156,10 @@ async def main():
     # Pre-load system prompt for better performance
     try:
         await load_system_prompt()
-        print("✅ System prompt loaded successfully")
+        print("✅ System prompt loaded and cached successfully")
     except Exception as e:
-        print(f"⚠️  Warning: Could not pre-load system prompt: {e}")
+        print(f"❌ Error: Could not load system prompt: {e}")
+        return
     
     while True:
         try:
