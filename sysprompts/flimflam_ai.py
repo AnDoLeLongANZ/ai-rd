@@ -99,7 +99,8 @@ async def generate_response(user_question, timeout_seconds=60):
         system_prompt = await load_system_prompt()
         
         # Add a CoT trigger to the user question
-        cot_trigger = "\n\nNow, think step-by-step before providing your final answer."
+        cot_trigger = "\n\nNow, think step-by-step before providing your final answer." \
+        "Your response must be code only and no explanation."
         
         model = os.getenv("MODEL", "gemini-2.5-flash-lite")  # Default fallback
         contents = [
